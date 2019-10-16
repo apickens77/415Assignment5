@@ -17,11 +17,6 @@ public class Parser
 		}
 	}
 	
-	static void nextToken()
-	{
-		current = lex.lex();
-	}
-	
 	void match(String token)
 	{
 		if(token.equals(current.getLexeme())) 
@@ -31,11 +26,14 @@ public class Parser
 			if(current != null)
 				current = lex.lex();
 			else
+			{
+				System.out.println("ERROR ON TOKEN: " + token + "INVALID TOKEN");
 				System.exit(0);
+			}
 		}
 		else
 		{
-			System.out.println("ERROR");
+			System.out.println("SYNTAX ERROR ON TOKEN: " + current.getLexeme() + "\nEXPECTED: " + token);
 			System.exit(0);
 		}
 	}
@@ -81,6 +79,8 @@ public class Parser
 				else
 					break;
 			}
+			//System.out.println("ERROR: INVALID TOKEN DETECTED");
+			//System.exit(0);
 		}
 		catch (NullPointerException e)
 		{
@@ -92,9 +92,10 @@ public class Parser
 	void declStmt()
 	{
 		System.out.println("Begin <decl_stmt>");
+		
 		if(current.getDescription() == "num keyword")
 			match("num");
-		else
+		else// if(current.getDescription() == "string keyword")
 			match("string");
 		
 		match(current.getLexeme());
@@ -103,13 +104,10 @@ public class Parser
 	void assStmt()
 	{
 		System.out.println("Begin <ass_stmt>");
-		
-		/*if(current.getDescription() == "identifier")
-		{*/
-			match(current.getLexeme());
-			match("=");
-			expr();
-		//}
+	
+		match(current.getLexeme());
+		match("=");
+		expr();
 	}
 	
 	void loopStmt()
@@ -179,8 +177,13 @@ public class Parser
 		
 		if (current.getDescription() == "string literal")
 			match(current.getLexeme());
-		if (current.getDescription() == "numeric literal")
+		else if (current.getDescription() == "numeric literal")
 			match(current.getLexeme());
+		else
+		{
+			System.out.println("ERROR: Expected literal value");
+			System.exit(0);
+		}
 	}
 	
 	public static void main(String[] args)
