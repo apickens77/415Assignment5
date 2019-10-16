@@ -1,1 +1,17 @@
-show('Hello world!')
+num test
+ 
+test = 7
+
+repeat 7 : 7
+(
+fart = 'fart'
+)
+
+if 7 : 7
+(
+fart = 'fart'
+)
+
+show ('fart chamber')
+
+$asdfasdfasdf$

@@ -1,17 +1,15 @@
-import java.io.File;
-import java.util.Scanner;
 
 public class Parser
 {
-	private String next;
-	private Scanner scan;
+	private static Lexer lex;
+	private static Token current;
 	
 	public Parser(String file)
 	{
 		try
 		{
-			scan = new Scanner(new File(file));
-			next = scan.next();
+			lex = new Lexer(file);
+			current = lex.lex();
 		}
 		catch(Exception e)
 		{
@@ -19,14 +17,19 @@ public class Parser
 		}
 	}
 	
+	static void nextToken()
+	{
+		current = lex.lex();
+	}
+	
 	void match(String token)
 	{
-		if(token.equals(next)) 
+		if(token.equals(current.getLexeme())) 
 		{
 			System.out.println("Matched " + token);
 			
-			if(scan.hasNext())
-				next = scan.next();
+			if(current != null)
+				current = lex.lex();
 			else
 				System.exit(0);
 		}
@@ -40,6 +43,7 @@ public class Parser
 	void program()
 	{
 		System.out.println("Begin <program>");
+		
 		stmts();
 	}
 	
@@ -48,43 +52,80 @@ public class Parser
 		System.out.println("Begin <stmts>");
 		stmt();
 		
-		while(scan.hasNext())
+		if(current != null)
 		{
-			//match
+			stmt();
 		}
 	}
 	
 	void stmt()
 	{
-		while(scan.hasNext())
+		System.out.println("Begin <stmt>");
+		
+		try 
 		{
-			if(next == "num" || next == "string")
-				declStmt();
-			else if(next == Token)
+			while(current != null) 
+			{
+				if(current.getDescription() == "num keyword" || current.getDescription() == "string keyword")
+					declStmt();
+				else if(current.getDescription() == "identifier")
+					assStmt();
+				else if(current.getDescription() == "repeat keyword")
+					loopStmt();
+				else if(current.getDescription() == "if keyword")
+					ifStmt();
+				else if(current.getDescription() == "show keyword")
+					printStmt();
+				else if(current.getDescription() == "comment")
+					match(current.getLexeme());
+				else
+					break;
+			}
 		}
+		catch (NullPointerException e)
+		{
+			System.exit(0);
+		}
+
 	}
 	
 	void declStmt()
 	{
-		if(next == "num")
+		System.out.println("Begin <decl_stmt>");
+		if(current.getDescription() == "num keyword")
 			match("num");
 		else
 			match("string");
 		
-		match("identifier");
+		match(current.getLexeme());
 	}
 	
 	void assStmt()
 	{
-		match("identifier");
-		match("=");
-		expr();
+		System.out.println("Begin <ass_stmt>");
+		
+		/*if(current.getDescription() == "identifier")
+		{*/
+			match(current.getLexeme());
+			match("=");
+			expr();
+		//}
 	}
 	
 	void loopStmt()
 	{
+		System.out.println("Begin <loop_stmt>");
+		
 		match("repeat");
-		//expression or bool expression
+		
+		expr();
+		if (current.getDescription() == "is equal to")
+		{
+			match(":");
+			expr();
+		}
+			
+		
 		match("(");
 		stmts();
 		match(")");
@@ -92,6 +133,8 @@ public class Parser
 	
 	void ifStmt()
 	{
+		System.out.println("Begin <if_stmt>");
+		
 		match("if");
 		boolExpr();
 		match("(");
@@ -101,27 +144,55 @@ public class Parser
 	
 	void printStmt()
 	{
+		System.out.println("Begin <show_stmt>");
+		
 		match("show");
 		match("(");
-		stmts();
+		expr();
 		match(")");
+	}
+	
+	void expr()
+	{
+		System.out.println("Begin <expr>");
+		
+		val();
+		if (current != null && current.getDescription() == "add/concatenate")
+		{
+			match("+");
+			val();
+		}
 	}
 	
 	void boolExpr()
 	{
+		System.out.println("Begin <bool_expr>");
+		
 		expr();
 		match(":");
 		expr();
 	}
 	
-	void expr()
+	void val()
 	{
+		System.out.println("Begin <val>");
 		
+		if (current.getDescription() == "string literal")
+			match(current.getLexeme());
+		if (current.getDescription() == "numeric literal")
+			match(current.getLexeme());
 	}
 	
 	public static void main(String[] args)
 	{
+		//Lexer lex = new Lexer(args [0]);
 		Parser parser = new Parser(args [0]);
 		parser.program();
+		
+		/*while(current!=null)
+        {
+            System.out.println((++count) + ".\t" + current);
+            current = lex.lex();
+        }*/
 	}
 }
