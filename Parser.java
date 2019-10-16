@@ -25,7 +25,7 @@ public class Parser
 			
 			if(current != null)
 				current = lex.lex();
-			else
+			else if(current.getDescription() == "ERROR")
 			{
 				System.out.println("ERROR ON TOKEN: " + token + "INVALID TOKEN");
 				System.exit(0);
@@ -33,7 +33,7 @@ public class Parser
 		}
 		else
 		{
-			System.out.println("SYNTAX ERROR ON TOKEN: " + current.getLexeme() + "\nEXPECTED: " + token);
+			System.out.println("SYNTAX ERROR ON TOKEN: \"" + current.getLexeme() + "\"\nEXPECTED: " + token);
 			System.exit(0);
 		}
 	}
@@ -59,7 +59,7 @@ public class Parser
 	void stmt()
 	{
 		System.out.println("Begin <stmt>");
-		
+		//System.out.println(current);
 		try 
 		{
 			while(current != null) 
@@ -76,11 +76,19 @@ public class Parser
 					printStmt();
 				else if(current.getDescription() == "comment")
 					match(current.getLexeme());
-				else
+				else if(current.getDescription() == "ERROR")
+				{
+					System.out.println("ERROR: TOKEN \"" + current.getLexeme() + "\" IS INVALID");
+					System.exit(0);
+				}
+				else if(current.getDescription() == "close parenthesis")
 					break;
+				else
+				{
+					System.out.println("SYNTAX ERROR ON TOKEN: \"" + current.getLexeme() + "\", UNEXPECTED TOKEN");
+					System.exit(0);
+				}
 			}
-			//System.out.println("ERROR: INVALID TOKEN DETECTED");
-			//System.exit(0);
 		}
 		catch (NullPointerException e)
 		{
@@ -95,19 +103,35 @@ public class Parser
 		
 		if(current.getDescription() == "num keyword")
 			match("num");
-		else// if(current.getDescription() == "string keyword")
+		else
 			match("string");
 		
-		match(current.getLexeme());
+		if(current.getDescription() == "identifier")
+			match(current.getLexeme());
+		else
+		{
+			System.out.println("SYNTAX ERROR ON TOKEN \"" + current.getLexeme() + "\", EXPECTED IDENTIFIER");
+			System.exit(0);
+		}
+			
 	}
 	
 	void assStmt()
 	{
 		System.out.println("Begin <ass_stmt>");
 	
-		match(current.getLexeme());
-		match("=");
-		expr();
+		if (current.getDescription() == "identifier")
+		{
+			match(current.getLexeme());
+			match("=");
+			expr();
+		}
+		else
+		{
+			System.out.println("SYNTAX ERROR ON TOKEN \"" + current.getLexeme() + "\", EXPECTED IDENTIFIER");
+			System.exit(0);
+		}
+		
 	}
 	
 	void loopStmt()
@@ -188,14 +212,7 @@ public class Parser
 	
 	public static void main(String[] args)
 	{
-		//Lexer lex = new Lexer(args [0]);
 		Parser parser = new Parser(args [0]);
 		parser.program();
-		
-		/*while(current!=null)
-        {
-            System.out.println((++count) + ".\t" + current);
-            current = lex.lex();
-        }*/
 	}
 }

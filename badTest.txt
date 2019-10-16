@@ -1,1 +1,1 @@
-1asdf = 'fart'
+repeat 'asdf' : 1
